@@ -163,6 +163,22 @@ pub trait SysLibrary {
     fn is_windows(&self) -> Result<bool, String>;
 
     #[eldritch_method]
+    /// Impersonates another user by stealing a process token.
+    ///
+    /// Opens the target process, duplicates its token, and applies it
+    /// to the current thread. Requires SeDebugPrivilege.
+    ///
+    /// Token is stored in the global token store. Use `tokens()` to list,
+    /// `use_token(id)` to switch, `revert_to_self()` to deactivate.
+    ///
+    /// **Parameters**
+    /// - `pid` (`int`): Target process ID.
+    ///
+    /// **Returns**
+    /// - `int`: Token store ID for later use with `use_token()`.
+    fn impersonate(&self, pid: i64) -> Result<i64, String>;
+
+    #[eldritch_method]
     /// Lists all user accounts on the system.
     ///
     /// **Returns**

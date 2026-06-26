@@ -1628,6 +1628,26 @@ sys.shell("ls /nofile")
 }
 ```
 
+On Windows, if an impersonation token is active (from `sys.impersonate()` or `sys.make_token()`), shell automatically spawns `cmd.exe` via `CreateProcessWithTokenW` so the child process runs as the impersonated user. This ensures `whoami` and network operations reflect the active token. Without an active token, falls back to normal `CreateProcessW`. For example:
+
+```python
+# say PID 1000 is lsass.exe owned by SYSTEM, and we start as Administrator with SeDebugPrivilege
+$> sys.shell("whoami")
+{
+  "status": 0,
+  "stderr": "",
+  "stdout": "Administrator\r\n"
+}
+$> sys.impersonate(1000)
+1
+$> sys.shell("whoami")
+{
+  "status": 0,
+  "stderr": "",
+  "stdout": "nt authority\\system\r\n"
+}
+```
+
 ### sys.write_reg
 
 `sys.write_reg(path: str, regname: str, regtype: str, regvalue: any) -> Bool`
