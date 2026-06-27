@@ -15,7 +15,6 @@ mod get_pid_impl;
 mod get_reg_impl;
 mod get_user_impl;
 mod hostname_impl;
-mod impersonate_impl;
 mod is_bsd_impl;
 mod is_linux_impl;
 mod is_macos_impl;
@@ -23,6 +22,7 @@ mod is_windows_impl;
 mod list_users_impl;
 mod reg_utils;
 mod shell_impl;
+pub mod tokens_impl;
 mod write_reg_impl;
 
 #[derive(Debug)]
@@ -85,10 +85,6 @@ impl SysLibrary for StdSysLibrary {
         hostname_impl::hostname().map_err(|e| e.to_string())
     }
 
-    fn impersonate(&self, pid: i64) -> Result<i64, String> {
-        impersonate_impl::impersonate(pid)
-    }
-
     fn is_bsd(&self) -> Result<bool, String> {
         is_bsd_impl::is_bsd().map_err(|e| e.to_string())
     }
@@ -111,6 +107,10 @@ impl SysLibrary for StdSysLibrary {
 
     fn shell(&self, cmd: String) -> Result<BTreeMap<String, Value>, String> {
         shell_impl::shell(cmd).map_err(|e| e.to_string())
+    }
+
+    fn tokens(&self, pid: Option<i64>) -> Result<Vec<BTreeMap<String, Value>>, String> {
+        tokens_impl::tokens(pid)
     }
 
     fn write_reg(

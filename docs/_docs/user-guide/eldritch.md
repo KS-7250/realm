@@ -1628,24 +1628,54 @@ sys.shell("ls /nofile")
 }
 ```
 
-On Windows, if an impersonation token is active (from `sys.impersonate()` or `sys.make_token()`), shell automatically spawns `cmd.exe` via `CreateProcessWithTokenW` so the child process runs as the impersonated user. This ensures `whoami` and network operations reflect the active token. Without an active token, falls back to normal `CreateProcessW`. For example:
+### sys.tokens
+
+`sys.tokens(pid: Optional<int>) -> List<Dict>`
+
+The **sys.tokens** method lists tokens. With no arguments, returns all tokens in the global store. With a PID, returns the process token info including user and privileges.
+
+**Stored tokens** (no args): Each dict has `active` (bool), `id` (int), `source` (str).
+
+**Process tokens** (with pid): Each dict has `user` (str, e.g. `"CORP\\admin"`), `pid` (int), `privileges` (list of `"PrivilegeName=enabled|disabled"`).
 
 ```python
-# say PID 1000 is lsass.exe owned by SYSTEM, and we start as Administrator with SeDebugPrivilege
-$> sys.shell("whoami")
-{
-  "status": 0,
-  "stderr": "",
-  "stdout": "Administrator\r\n"
-}
-$> sys.impersonate(1000)
-1
-$> sys.shell("whoami")
-{
-  "status": 0,
-  "stderr": "",
-  "stdout": "nt authority\\system\r\n"
-}
+$> sys.tokens()
+
+| active | id | source              |
+| ------ | -- | ------------------- |
+| True   | 1  | impersonate:pid:700 |
+
+$> pprint(sys.tokens(pid=700))
+
+[
+  {
+    "pid": 700,
+    "privileges": [
+      "SeAssignPrimaryTokenPrivilege=disabled",
+      "SeIncreaseQuotaPrivilege=disabled",
+      "SeTcbPrivilege=enabled",
+      "SeSecurityPrivilege=disabled",
+      "SeTakeOwnershipPrivilege=disabled",
+      "SeLoadDriverPrivilege=disabled",
+      "SeProfileSingleProcessPrivilege=enabled",
+      "SeIncreaseBasePriorityPrivilege=enabled",
+      "SeCreatePermanentPrivilege=enabled",
+      "SeBackupPrivilege=disabled",
+      "SeRestorePrivilege=disabled",
+      "SeShutdownPrivilege=disabled",
+      "SeDebugPrivilege=enabled",
+      "SeAuditPrivilege=enabled",
+      "SeSystemEnvironmentPrivilege=disabled",
+      "SeChangeNotifyPrivilege=enabled",
+      "SeUndockPrivilege=disabled",
+      "SeManageVolumePrivilege=disabled",
+      "SeImpersonatePrivilege=enabled",
+      "SeCreateGlobalPrivilege=enabled",
+      "SeTrustedCredManAccessPrivilege=disabled"
+    ],
+    "user": "NT AUTHORITY\\SYSTEM"
+  }
+]
 ```
 
 ### sys.write_reg
